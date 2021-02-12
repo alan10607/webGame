@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="shortcut icon" href="icon.png">
+<title>...</title>
+</head>
+<style>
+body{
+	font-family: Courier;
+	background-color: #e0e0e0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}	
+  
+canvas{
+	/* border: 0.5px #5f5f5f solid;*/
+    display: block;
+	cursor: crosshair;
+    transform-origin: top left;
+	transform: scale(1);    
+	position: fixed;
+    top: 0;
+    left: 0;
+	z-index: 9999;
+	
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+#center{
+	margin: 5000px 0;
+	width: 100%;
+	height: 3000px;
+}
+//css
+</style>
+
+<body oncontextmenu="return false;">
+<div id="center"></div>
+<canvas id="mainCanvas">
+瀏覽器不支援
+</canvas>
+
+<script language="JavaScript" type="text/JavaScript">
+class Player{
+	constructor(){
+		this.playTime = -1;
+		this.lastPlayTime = 0.06;
+		this.frame = 0;
+		this.pickEle = -1;
+		this.pickX = 0;
+		this.pickY = 0;
+		this.borderFlag = true;
+	}
+}
+class Brick{
+	constructor(id, tabX, tabY){
+		this.id = id;
+		this.tabX = tabX;
+		this.tabY = tabY;
+		this.w = playBoardWidth / playBoardSize;
+		this.h = playBoardWidth / playBoardSize;
+		this.x = tabX * this.w;
+		this.y = tabY * this.h;
+		this.color = "#5f5f5f";
+		this.borderColor = "#969696";
+		this.status = "close";
+		this.toStatus = "close";
+
+	}
+	draw(){
+		if(this.status == "open"){
+			ctx.fillStyle = this.color;
+			ctx.fillRect(this.x, this.y, this.w, this.h);
+		}
+		if(player.borderFlag){
+			ctx.strokeStyle = this.borderColor;
+			ctx.strokeRect(this.x, this.y, this.w, this.h);
+		}
+	}
+	
+}
+
+
+
+class Score {
+	constructor(){
+		this.color = "#111111";
+		this.gameoverFlag = false;
+		this.showDifficulty = 0;
+	}
+	draw(){
+		ctx.fillStyle = this.color;
+		ctx.font = "40px Arial";
+		ctx.textAlign = "left";
+		var gap = 50;
+		var x = 25;
+		ctx.fillText("Size: " + playBoardSize + " x " + Math.ceil(playBoardSize*heightRate), x, 1*gap+10);
+		ctx.fillText("Frame: " + player.frame, x, 2*gap+10);
+		ctx.fillText("Time Period: " + this.setTimePeriod(), x, 3*gap+10);
+		
+		//console.log("fps:" + 60/(Math.round(player.playTime * 60 * 100) / 100));
+	}
+	setTimePeriod(){
+		var str = player.playTime.toString();
+		if(str.indexOf("-") != -1){
+			return "_.__s";
+		}else if(str.indexOf(".") == -1){
+			return str + ".00s";
+		}else{
+			return str.padEnd(4, "0") + "s";
+		}
+	
+	}
+}
+
+
+
+class Tip{
+	constructor(str, moveFlag){
+		this.x = canvas.width / 2;
+		this.y = canvas.height / 2 - 50;
+		this.str = str;
+		this.fontSize = "70px";
+		this.existTime = 300;
+		this.color = "#111111";
+		this.textAlign = "center";
+		this.dx = 0;
+		this.moveFlag = moveFlag==null? true:moveFlag;
+		this.dy = this.moveFlag? -0.1:0;
+	}
+	draw(){
+		var strArr = this.str.split("\n");
+		var gap = 100;
+		this.y += this.dy;
+		ctx.fillStyle = this.color;
+		ctx.font = this.fontSize + " serif";
+		ctx.textAlign = this.textAlign;
+		
+		for(let i=0; i<strArr.length; i++){
+			ctx.fillText(strArr[i], this.x, this.y + (i-(strArr.length-1)/2)*gap);
+		}
+		this.existTime--;
+	}
+}
+
+class Log{
+	constructor(chessTimeNo, id, toX, toY){
+		this.chessTimeNo = chessTimeNo;
+		this.id = id;
+		this.toX = toX;
+		this.toY = toY;
+	}
+	back(){
+		for(chess of chesses){
+			if(chess.id == this.id){
+				chess.toX = this.toX;
+				chess.toY = this.toY;
+			}
+		}
+	}
+}
+
+
+class Controller{
+	constructor(x, y, w, h, type, chooseNum){
+		this.x = x;
+		this.y = y;
+		this.w = w;
+		this.h = h;
+		this.centerX = this.x + (this.w / 2);
+		this.centerY = this.y + (this.h / 2);
+		this.type = type;
+		this.subType = 0;
+		this.choose = 0;
+		this.chooseNum = chooseNum;
+		this.color = "#111111";
+		this.bgColor = "#ffffff77";
+		this.hintColor = "#ff3636";
+		this.brickColor = "#5f5f5f";
+		this.bannerColor = "#333333bb";
+		this.fontSize = "50px";
+		this.status = "";
+		this.oriX = this.x;
+		this.oriY = this.y;
+		this.hintBrick = null;
+		this.textAlign = "center";
+		
+		if(this.type == "addTime"){
+			this.text = "+";
+		}else if(this.type == "lessTime"){
+			this.text = "-";
+		}else if(this.type == "pause"){
+			this.text = ">>";
+		}else if(this.type == "size"){
+			this.text = "Change size?";
+		}else if(this.type == "addSize"){
+			this.text = "+";
+		}else if(this.type == "lessSize"){
+			this.text = "-";
+		}else if(this.type == "border"){
+			this.text = "Draw border?";
+		}else if(this.type.indexOf("ele") != -1){
+			this.subType = this.type.substr(3);
+			this.type = "ele";
+			this.fontSize = "40px";
+			if(this.subType == 0){
+				this.text = "信號燈";
+			}else if(this.subType == 1){
+				this.text = "慨影";
+			}else if(this.subType == 2){
+				this.text = "滑翔機";
+			}else if(this.subType == 3){
+				this.text = "機槍";
+			}
+		}
+	}
+	draw(){
+		//更新
+		this.centerX = this.x + (this.w / 2);
+		this.centerY = this.y + (this.h / 2);
+		
+		
+		if(this.status == "move"){
+			//箭頭
+			ctx.beginPath();
+			ctx.moveTo(this.x+10, this.y+10);
+			ctx.lineTo(this.x+30, this.y+10);
+			ctx.lineTo(this.x+10, this.y+30);
+			ctx.closePath();	
+			ctx.fillStyle = this.hintColor;
+			ctx.fill();
+		
+			//提示
+			var brickW = playBoardWidth / playBoardSize;
+			var lines = getEleArray(this.subType);
+			if(findBrickByXY(this.x+10, this.y+10) != null){
+				this.hintBrick = findBrickByXY(this.x+10, this.y+10);
+			}
+			if(this.hintBrick != null){
+				ctx.fillStyle = this.brickColor;
+				for(let i=0; i<lines.length; i++){
+					for(let j=0; j<lines[0].length; j++){
+						if(lines[i][j] == 1){
+							ctx.fillRect(this.hintBrick.x + i*brickW, this.hintBrick.y + j*brickW, brickW, brickW);
+						}
+					}
+				}
+			}
+			
+			//外框
+			ctx.strokeRect(this.x-10, this.y-10, brickW*lines.length + 20, brickW*lines[0].length + 20);
+		}else{
+			ctx.strokeStyle = this.color;
+			ctx.strokeRect(this.x, this.y, this.w, this.h);
+			ctx.fillStyle = this.bgColor;
+			ctx.fillRect(this.x, this.y, this.w, this.h);
+			
+			ctx.fillStyle = this.color;
+			ctx.font = this.fontSize + " Arial";
+			ctx.textAlign = this.textAlign;
+			ctx.fillText(this.text, this.centerX, this.type=="ele"? this.centerY+17:this.centerY+20);
+		}
+		
+		//回復原設定
+		ctx.globalAlpha = 1;
+	}
+	tap(){
+		this.choose++;
+		if(this.choose >= this.chooseNum){
+			this.choose = 0;
+		}
+		if(this.type == "addTime"){
+			this.setPlayTime(5);
+		}else if(this.type == "lessTime"){
+			this.setPlayTime(-5);
+		}else if(this.type == "pause"){
+			if(this.choose == 0){
+				this.text = ">>";
+			}else if(this.choose == 1){
+				this.text = "||";
+			}
+			this.pausePlayTime();
+		}else if(this.type == "size"){
+			this.reStart();
+		}else if(this.type == "addSize"){
+			playBoardSize++;
+		}else if(this.type == "lessSize"){
+			if(playBoardSize > 1){
+				playBoardSize--;
+			}
+		}else if(this.type == "border"){
+			if(player.borderFlag){
+				player.borderFlag = false;
+			}else{
+				player.borderFlag = true;
+			}
+		}
+	}
+	setPlayTime(add){
+		if(player.playTime == -1 ){//暫停
+			player.playTime = player.lastPlayTime;
+		}else{
+			if(add > 0){
+					if(player.playTime >= 1){
+						player.playTime++;
+					}else if(player.playTime <= 0.09){
+						player.playTime = player.playTime + 0.01;
+					}else{
+						player.playTime = player.playTime + 0.1;
+					}
+			}else if(add < 0){
+					if(player.playTime >= 2){
+						player.playTime--;
+					}else if(player.playTime <= 0.1){
+						player.playTime = player.playTime - 0.01;
+					}else{
+						player.playTime = player.playTime - 0.1;
+					}
+			}
+		}
+		
+		player.playTime = Math.round(player.playTime * 100) / 100;
+		if(player.playTime <= 0){
+			player.playTime = player.lastPlayTime;
+		}
+		player.lastPlayTime = player.playTime;
+	}
+	pausePlayTime(){
+		if(player.playTime == -1){
+			player.playTime = player.lastPlayTime;
+			this.removeBanner();
+			//設回
+			playBoardSize = oriPlayBoardSize;
+		}else{
+			player.playTime = -1;
+			this.showBanner();
+			//暫存
+			oriPlayBoardSize = playBoardSize;
+
+		}
+		
+	}
+	showBanner(){
+		//背景
+		ctx.fillStyle = this.bannerColor;
+		ctx.fillRect(25, 250, playBoardWidth - 50, playBoardHeight - 500);
+		controllers.push(new Controller(playBoardWidth-150, playBoardHeight-660, 100, 100, "addSize", 1));
+		controllers.push(new Controller(playBoardWidth-280, playBoardHeight-660, 100, 100, "lessSize", 1));
+		controllers.push(new Controller(playBoardWidth-550, playBoardHeight-550, 500, 100, "size", 2));
+		controllers.push(new Controller(playBoardWidth-550, playBoardHeight-350, 500, 100, "border", 2));
+	}
+	reStart(){
+		player.playTime = -1;
+		bricks = [];
+		createBrick();
+		this.removeBanner();
+		oriPlayBoardSize = playBoardSize;
+	}
+	removeBanner(){
+		//刪除
+		var newControllers = [];
+		for(let controller of controllers){
+			if(controller.type == "size" || controller.type == "addSize" || controller.type == "lessSize" || controller.type == "border"){
+				controller = null;
+			}else{
+				newControllers.push(controller);
+			}
+		}
+		controllers = newControllers;
+		
+	}
+}
+
+
+
+function createBrick(){
+	var size = playBoardSize;
+	var sizeY = playBoardSize * heightRate;
+	var id = 0;
+	for(let i=0; i<size; i++){
+		for(let j=0; j<sizeY; j++){
+			bricks.push(new Brick(id++, i, j));
+		}
+	}
+}
+
+
+
+function createController(){
+	controllers.push(new Controller(playBoardWidth-150, playBoardHeight-150, 100, 100, "lessTime", 1));
+	controllers.push(new Controller(playBoardWidth-280, playBoardHeight-150, 100, 100, "addTime", 1));
+	controllers.push(new Controller(playBoardWidth-410, playBoardHeight-150, 100, 100, "pause", 2));
+	var top = -500;
+	var gap = 120;
+	controllers.push(new Controller(50, playBoardHeight+top, 130, 90, "ele0", 2));
+	controllers.push(new Controller(50, playBoardHeight+top+gap, 130, 90, "ele1", 2));
+	controllers.push(new Controller(50, playBoardHeight+top+2*gap, 130, 90, "ele2", 2));
+	controllers.push(new Controller(50, playBoardHeight+top+3*gap, 130, 90, "ele3", 2));
+}
+function iniCreateElement(){
+	player = new Player();
+	createBrick();
+	score = new Score();
+	createController();
+}
+function createElement(){
+
+}
+
+function drawAll(eles){
+	for(e of eles){
+		e.draw();
+	}
+}
+function draw(){
+	drawAll(bricks);
+	score.draw();
+	drawAll(tips);
+	drawAll(controllers);
+}
+function moveAll(eles){
+	for(e of eles){
+		e.x += e.dx;
+		e.y += e.dy;
+	}
+}
+
+//將方塊轉為陣列形式
+function brickToArray(){
+	var lines = [];
+	for(let i=0; i<playBoardSize; i++){
+		var line = [];
+		for(let j=0; j<playBoardSize*heightRate; j++){
+			line.push(findBrickByTab(i, j));
+		}
+		lines.push(line);
+	}
+	return lines;
+}
+
+function move(){
+	var	fre = Math.round(player.playTime * 60);
+	if(fre < 0){
+		return;
+	}
+	
+	if(time % fre == 0){
+		//轉成陣列
+		var lines = brickToArray();
+		
+		//判斷
+		for(let line of lines){
+			for(let brick of line){
+				var count = 0;
+				var check = [
+					{tabX : brick.tabX+1, tabY : brick.tabY},
+					{tabX : brick.tabX+1, tabY : brick.tabY+1},
+					{tabX : brick.tabX, tabY : brick.tabY+1},
+					{tabX : brick.tabX-1, tabY : brick.tabY+1},
+					{tabX : brick.tabX-1, tabY : brick.tabY},
+					{tabX : brick.tabX-1, tabY : brick.tabY-1},
+					{tabX : brick.tabX, tabY : brick.tabY-1},
+					{tabX : brick.tabX+1, tabY : brick.tabY-1}
+				];
+				for(let c of check){
+					if(c.tabX > -1 && c.tabY > -1 && c.tabX < playBoardSize && c.tabY < playBoardSize*heightRate){
+						if(lines[c.tabX][c.tabY] != null && lines[c.tabX][c.tabY].status == "open"){
+							count++;
+						}
+					}
+				}
+				
+				if(brick.status == "close" && count == 3){
+					brick.toStatus = "open";
+				}else if(brick.status == "open" && count >=2 && count <=3){
+					brick.toStatus = "open";
+				}else{
+					brick.toStatus = "close";
+				}
+			}
+		}
+		
+		//賦值
+		for(let brick of bricks){
+			brick.status = brick.toStatus;
+		}
+		
+		//紀錄畫面數
+		player.frame++;
+	}
+}
+function clear(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height); 
+}
+
+function deleteElement(){
+	var newBricks = [];
+	for(brick of bricks){
+		if(brick.status == "remove"){
+			brick = null;
+			delete brick;
+		}else{
+			newBricks.push(brick);
+		}
+	}
+	bricks = newBricks;	
+	
+	
+	var newTips = [];
+	for(tip of tips){
+		if(tip.existTime <= 0){
+			tip = null;
+			delete tip;
+		}else{
+			newTips.push(tip);
+		}
+	}
+	tips = newTips;
+	
+}
+
+function showMsg(str){
+	tips.push(new Tip(str));
+}
+
+//產生0<=return<max的整數
+function getRandomInt(max){
+	return Math.floor(Math.random() * Math.floor(max));
+}
+
+//檢查碰撞
+function findBrickByXY(x, y){
+	for(brick of bricks){
+		if(y >= brick.y && y <= brick.y + brick.h && x >= brick.x && x <= brick.x + brick.w){
+			return brick;
+		}
+	}
+	return null;
+}
+//找方塊
+function findBrickByTab(tabX, tabY){
+	for(brick of bricks){
+		if(brick.tabX == tabX && brick.tabY == tabY){
+			return brick;
+		}
+	}
+	return null;
+}
+//檢查位置
+function checkPointTouchBrick(x, y, brick){
+	if(y >= brick.y && y <= brick.y + brick.h && x >= brick.x && x <= brick.x + brick.w){
+		return true;
+	}
+	return false;
+}
+function getEleArray(type){
+	var arr = [];
+	var temp = [];
+	if(type == 0){
+		temp = [
+			 [0, 1, 0]
+			,[0, 1, 0]
+			,[0, 1, 0]
+		]
+	}else if(type == 1){
+		temp = [
+			 [0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 1, 1, 1, 0, 0]
+			,[0, 1, 0, 0, 0, 1, 0]
+			,[0, 1, 0, 0, 0, 1, 0]
+			,[0, 0, 1, 1, 1, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 1, 1, 1, 0, 0]
+			,[0, 1, 0, 0, 0, 1, 0]
+			,[0, 1, 0, 0, 0, 1, 0]
+			,[0, 0, 1, 1, 1, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0]
+		]
+	}else if(type == 2){
+		temp = [
+			 [0, 0, 1]
+			,[1, 0, 1]
+			,[0, 1, 1]
+		]
+	}else if(type == 3){
+		temp = [
+			 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1]
+			,[1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+			,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+		]
+	}
+	
+	//轉換方向
+	for(let i=0; i<temp[0].length; i++){
+		var line = [];
+		for(let j=0; j<temp.length; j++){
+			line.push(temp[j][i]);
+		}
+		arr.push(line);
+	}
+	
+	return arr;
+}
+
+
+
+function addEle(tabX, tabY, type){
+	var lines = brickToArray();//轉成陣列
+	var toLines = getEleArray(type);//轉成陣列
+	
+	//改變
+	for(let i=0; i<toLines.length; i++){
+		for(let j=0; j<toLines[0].length; j++){
+			if(i > -1 && i < playBoardSize && j > -1 && j < playBoardSize*heightRate
+				&& i+tabX > -1 && i+tabX < playBoardSize && j+tabY > -1 && j+tabY < playBoardSize*heightRate){
+				if(lines[i][j] != null && lines[i + tabX][j + tabY] != null){
+					if(toLines[i][j] == 1){
+						lines[i + tabX][j + tabY].status = "open";
+					}else if(toLines[i][j] == 0){
+						lines[i + tabX][j + tabY].status = "close";
+					}
+				}
+			}
+		}
+	}
+	
+	
+
+
+}
+
+//點選菜單
+function onTouchController(x, y, way){
+	if(way == "end"){
+		if(player.pickEle != -1){
+			//取消移動
+			for(controller of controllers){
+				if(controller.type == "ele" && controller.subType == player.pickEle){
+					//加入
+					var brick = controller.hintBrick;
+					if(brick != null){
+						addEle(brick.tabX, brick.tabY, player.pickEle)
+					}
+					
+					controller.x = controller.oriX;
+					controller.y = controller.oriY;
+					controller.status = "";
+					break;
+				}
+			}
+			//取消選取
+			player.pickEle = -1;
+			return true;
+		}
+		for(controller of controllers){
+			if(x > controller.x && x < controller.x + controller.w && y > controller.y && y < controller.y + controller.h){
+				controller.tap();
+				return true;
+			}
+		}
+	}else if(way == "move"){
+		if(player.pickEle != -1){
+			for(controller of controllers){
+				if(controller.type == "ele" && controller.subType == player.pickEle){
+					controller.x = x + player.pickX;
+					controller.y = y + player.pickY;
+					controller.status = "move";//移動
+					return true;
+				}
+			}
+			return true;//禁止畫圖
+		}
+		for(controller of controllers){
+			if(x > controller.x && x < controller.x + controller.w && y > controller.y && y < controller.y + controller.h){
+				return true;
+			}
+		}
+	}else if(way == "start"){
+		for(controller of controllers){
+			if(x > controller.x && x < controller.x + controller.w && y > controller.y && y < controller.y + controller.h){
+				if(controller.type == "ele"){
+					controller.tap();
+					player.pickEle = controller.subType;//選取
+					player.pickX = controller.x - x;
+					player.pickY = controller.y - y;
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+//手指主方法
+function onTouchBrick(x, y){
+	for(brick of bricks){
+		if(checkPointTouchBrick(x, y, brick)){
+			brick.status = "open";
+		}
+	}
+}
+
+function main(){
+	time++;
+	clear();
+	createElement();
+	move();
+	draw();
+	deleteElement();
+
+	raf = window.requestAnimationFrame(main);
+
+}
+
+
+function init(){
+	//ui初始化 大小調整
+	var clientWidth = document.documentElement.clientWidth;
+	var clientHeight = document.documentElement.clientHeight;
+	canvas.width = playBoardWidth;
+	canvas.height = playBoardHeight;
+	if(clientWidth * heightRate < clientHeight){
+		scale = clientWidth / playBoardWidth;
+	}else{
+		scale = clientHeight / playBoardHeight;
+	}
+	canvas.style.transform = "scale(" + scale + ")";
+	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	playBoardScale = scale;
+	
+
+	iniCreateElement();
+
+	raf = window.requestAnimationFrame(main);
+	
+}	
+
+
+
+	var canvas = document.getElementById("mainCanvas");
+	var ctx;
+	if (canvas.getContext){
+		ctx = canvas.getContext("2d");
+	}else{
+		alert("瀏覽器不支援");
+	}
+	var raf;
+	var playBoardScale = 1;//縮放
+	var heightRate = 16 / 9;
+	var playBoardWidth = 900;
+	var playBoardHeight = playBoardWidth * heightRate;
+	var playBoardSize = 40;
+	var oriPlayBoardSize = 40;
+	var time = 0;
+	var scale = 0;
+	var pauseFlag = false;//暫停
+	
+	//物件類別
+	var bricks = [];
+	var tips = [];
+	var player;
+	var score;
+	var controllers = [];
+	
+	init();
+	
+
+window.addEventListener("mousemove", function(e){
+});
+window.addEventListener("click", function(e){
+	e.preventDefault();	
+	var x = e.offsetX;
+	var y = e.offsetY;
+	if(!onTouchController(x, y)){
+		onTouchBrick(x, y);
+	}
+});
+
+window.addEventListener("touchstart", function(e){
+	//e.preventDefault();
+	var x = e.changedTouches[0].pageX;
+	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
+	onTouchController(x * (1 / scale), y * (1 / scale), "start");
+});
+
+window.addEventListener("touchmove", function(e){
+	e.preventDefault();
+	var x = e.changedTouches[0].pageX;
+	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
+	if(!onTouchController(x * (1 / scale), y * (1 / scale), "move")){
+		onTouchBrick(x * (1 / scale), y * (1 / scale));
+	}
+},{passive: false});
+
+window.addEventListener("touchend", function(e){
+	e.preventDefault();
+	var x = e.changedTouches[0].pageX;
+	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
+	if(!onTouchController(x * (1 / scale), y * (1 / scale), "end")){
+		onTouchBrick(x * (1 / scale), y * (1 / scale));
+	}
+});
+
+
+//用來消除行動裝置瀏覽器拖移時的頁面飄移
+window.addEventListener("scroll", function(e){
+	var center = document.getElementById("center");
+	if(document.documentElement.scrollTop > center.offsetTop + 100 || document.documentElement.scrollTop < center.offsetTop - 100){
+		document.documentElement.scrollTop = center.offsetTop;
+	}
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="shortcut icon" href="icon.png">
+<title>...</title>
+</head>
+<style>
+body{
+	font-family: Courier;
+	background-color: #e0e0e0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}	
+  
+canvas{
+	/* border: 0.5px #5f5f5f solid;*/
+    display: block;
+	cursor: crosshair;
+    transform-origin: top left;
+	transform: scale(1);    
+	position: fixed;
+    top: 0;
+    left: 0;
+	z-index: 9999;
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+#center{
+	margin: 5000px 0;
+	width: 100%;
+	height: 3000px;
+}
+//css
+</style>
+
+<body oncontextmenu="return false;">
+<div id="center"></div>
+<canvas id="mainCanvas">
+瀏覽器不支援
+</canvas>
+
+<script language="JavaScript" type="text/JavaScript">
+class Arrow{
+	constructor(){
+		this.w = 3;
+		this.h = 50;
+		this.length = 100;
+		this.x = oriX - (this.w / 2);
+		this.y = oriY - this.h;
+		this.ro = 90;
+		this.minRo = 10;
+		this.maxRo = 170;
+		this.move = 0;
+		this.color = "#5f5f5f";
+		this.offset = 0;
+		this.roMove = 0;
+		this.lastRoMove = 0;
+	}
+	draw(){
+		if(this.move != 0){
+			this.ro += this.move;
+			this.move = 0;
+		}
+		//連續控制
+		if(this.roMove != 0){
+			this.ro += this.roMove;
+		}
+		//限制
+		if(this.ro < this.minRo){
+			this.ro = this.minRo;
+		}
+		if(this.ro > this.maxRo){
+			this.ro = this.maxRo;
+		}
+		ctx.beginPath();
+		ctx.moveTo(oriX, oriY);
+		var toX = Math.cos(Math.PI * this.ro / 180);
+		var toY = -Math.sin(Math.PI * this.ro / 180);
+		var length = 100;
+		do{
+			length++;
+		}while(!insideBrickOrNot(oriX + (toX * length), oriY + (toY * length)) 
+			&& length < Math.sqrt(Math.pow(playBoardWidth, 2) + Math.pow(playBoardHeight, 2)))
+		
+		ctx.lineTo(oriX + (toX * length), oriY + (toY * length));
+		ctx.strokeStyle = this.color;
+		
+		ctx.lineWidth = this.w;
+		//動畫
+		ctx.setLineDash([12, 8]);
+		this.offset++;
+		if(this.offset > 40){
+			this.offset = 0;
+		}
+		ctx.lineDashOffset = -this.offset;
+				
+		ctx.stroke();
+	}	
+}
+
+class Ball{
+	constructor(){
+		this.x = oriX;
+		this.y = oriY;
+		this.lastX = oriX;
+		this.lastY = oriY;
+		this.r = 5;
+		this.color = "#5f5f5f";
+		this.speed = 9;
+		this.hitTime = 0;
+		this.ro = arrow.ro;
+		this.dx = Math.cos(Math.PI * this.ro / 180) * this.speed;
+		this.dy = -Math.sin(Math.PI * this.ro / 180) * this.speed;
+	}
+	draw(){
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+		ctx.closePath();	
+		ctx.fillStyle = this.color;
+		ctx.fill();
+	}
+}
+
+class Brick {
+	constructor(x, y){
+		this.x = x;
+		this.y = y;
+		this.w = 30;
+		this.h = 30;
+		this.hp = 30;
+		this.color = "#5f5f5f";
+	}
+	draw(){
+		ctx.fillStyle = this.color;
+		ctx.fillRect(this.x, this.y, this.w, this.h);
+		ctx.fillStyle = "#FFFFFF";
+		ctx.font = "10px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText(this.hp, this.x + (this.w * 0.48), this.y + (this.h * 0.6));
+	}
+}
+
+class Score {
+	constructor(){
+		this.point = 0;
+		this.hp = hp;
+		this.hitTime = 0;
+		if(localStorage.getItem("maxScore") == null){
+			localStorage.setItem("maxScore", "0");
+			this.maxPoint = 0;
+		}else{
+			this.maxPoint = parseInt(localStorage.getItem("maxScore"));
+		}
+		if(localStorage.getItem("maxHitTime") == null){
+			localStorage.setItem("maxHitTime", "0");
+			this.maxHitTime = 0;
+		}else{
+			this.maxHitTime = parseInt(localStorage.getItem("maxHitTime"));
+		}
+		
+		this.color = "#111111";
+	}
+	draw(){
+		ctx.fillStyle = this.color;
+		ctx.font = "12px Arial";
+		ctx.textAlign = "left";
+		if(this.point > this.maxPoint){
+			this.maxPoint = this.point;
+		}
+		if(this.hitTime > this.maxHitTime){
+			this.maxHitTime = this.hitTime;
+		}
+		
+		if((this.point / 10000) > (this.hp - hp + 1) * (this.hp - hp + 2) / 2){
+			this.hp++;
+		}
+		ctx.fillText("最高得分:" + this.maxPoint, 5, 15);
+		ctx.fillText("最高單次:" + this.maxHitTime, 5, 30);
+		ctx.fillText("單次最高:" + this.hitTime, 5, 45);
+		ctx.fillText("得分:" + this.point, 5, 60);
+		ctx.fillText("彈珠:" + this.hp, 5, 75);
+		if(bricks.length == 0){
+			this.win();
+		}
+	}
+	win(){
+		if(this.maxPoint > localStorage.getItem("maxScore")){
+			localStorage.setItem("maxScore", this.maxPoint);
+		}
+		if(this.maxHitTime > localStorage.getItem("maxHitTime")){
+			localStorage.setItem("maxHitTime", this.maxHitTime);
+		}
+		ctx.fillStyle = this.color;
+		ctx.font = "50px Arial";
+		ctx.textAlign = "center";
+		ctx.fillText("YOU WIN!!", canvas.width / 2, canvas.height / 2);
+		ctx.fillText("SCORE: " + this.point, canvas.width / 2, canvas.height / 2 +50);
+	}
+}
+
+class Tip{
+	constructor(x, y, str, fontSize, color){
+		this.x = x;
+		this.y = y;
+		this.str = str;
+		this.fontSize = fontSize;
+		this.existTime = 30;
+		this.color = color;
+		this.alpha = 1;
+		this.dx = 0;
+		this.dy = -0.9;
+	}
+	draw(){
+		ctx.golbalAlpha = this.alpha * this.existTime / 50;
+		ctx.fillStyle = this.color;
+		ctx.font = this.fontSize + " Arial";
+		ctx.textAlign = "left";
+		ctx.fillText(this.str, this.x, this.y);
+		this.existTime--;
+	}
+}
+
+
+class Controller{
+	constructor(){
+		this.x = oriX;
+		this.y = oriY;
+		this.startX = oriX;
+		this.startY = oriY;
+		this.touchX = oriX;
+		this.touchY = oriY;
+		this.start = true;
+		this.r = 30;
+		this.color = "#252525";
+		this.ro = arrow.ro;
+		this.startShoot = false;
+	}
+	draw(){
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.r, 0, Math.PI*2, true);
+		ctx.closePath();	
+		if(this.startShoot == true){
+			//ctx.fillStyle = "#db9ca7";
+			ctx.fillStyle = this.color;
+		}else{
+			ctx.fillStyle = this.color;
+		}
+		ctx.fill();
+	}
+	setStartXY(x, y){
+		if(this.start == true){
+			this.startX = x;
+			this.startY = y;
+			this.start = false;
+		}
+	}
+	onStart(){
+		this.start = true;
+	}
+}
+
+function clear(){
+	ctx.clearRect(0, 0, canvas.width, canvas.height); 
+	//ctx.fillStyle = "rgba(255, 255, 255, 0.3";
+	//ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function move(){
+	for(ball of balls){
+		ball.lastX = ball.x;
+		ball.lastY = ball.y;
+		ball.x += ball.dx;
+		ball.y += ball.dy;
+		if(ball.x + ball.r > canvas.width || ball.x - ball.r < 0){
+			ball.dx = -ball.dx;
+		}
+		if(ball.y - ball.r < 0){
+			ball.dy = -ball.dy;
+		}
+		
+		for(brick of bricks){
+			rebound(ball, brick);
+		}
+		if(ball.dy == 0 && ball.y == 0){
+			ball.dy = 1;
+		}
+	}
+
+	for(tip of tips){
+		tip.x += tip.dx;
+		tip.y += tip.dy;
+	}
+}
+function draw(){
+	for(ball of balls){
+		ball.draw();
+	}
+	for(brick of bricks){
+		brick.draw();
+	}
+	for(tip of tips){
+		tip.draw();
+	}
+	arrow.draw();
+	score.draw();
+	controller.draw();
+}
+
+function getRandomInt(max){
+	return Math.floor(Math.random() * Math.floor(max));
+}
+
+function checkInside(x, y, brick){
+	if(x >= brick.x && x <= brick.x + brick.w && y >= brick.y && y <= brick.y + brick.h){
+		return true;
+	}
+	return false;
+}
+
+function createBrick(){
+	var x;
+	var y;
+	var flag = false; 
+	var newBrick;
+	var autoBreakTime = 999;
+	for (let i=0; i<brickNum; i++){
+		do{
+			newBrick = new Brick(getRandomInt(playBoardWidth - 30), getRandomInt(playBoardHeight - 30 - arrowSpace))
+			flag = false;
+			for(brick of bricks){
+				if(checkInside(newBrick.x, newBrick.y, brick) || checkInside(newBrick.x + newBrick.w, newBrick.y, brick)
+				|| checkInside(newBrick.x, newBrick.y + newBrick.h, brick) || checkInside(newBrick.x + newBrick.w, newBrick.y + newBrick.h, brick)){
+					flag = true;
+					autoBreakTime--;
+					break;
+				}
+			}
+		}while(flag && autoBreakTime > 0);
+		if(autoBreakTime < 1){
+			break;
+		}
+		bricks.push(newBrick);
+	}
+}
+
+function deleteElement(){
+	var newBricks = [];
+	for(brick of bricks){
+		if(brick.hp <= 0){
+			brick = null;
+			delete brick;
+		}else{
+			newBricks.push(brick);
+		}
+	}
+	bricks = newBricks;
+	
+	var newBalls = [];
+	for(ball of balls){
+		if(ball.x + ball.r > canvas.width + 100 || ball.x - ball.r < -100 || ball.y + ball.r > canvas.height + 100 || ball.y - ball.r < -100){
+			ball = null;
+			delete ball;
+		}else{
+			newBalls.push(ball);
+		}
+	}
+	balls = newBalls;
+	
+	
+	var newTips = [];
+	for(tip of tips){
+		if(tip.existTime <= 0){
+			tip = null;
+			delete tip;
+		}else{
+			newTips.push(tip);
+		}
+	}
+	tips = newTips;
+}
+
+function scoreUp(ball, brick){
+	brick.hp--;
+	ball.hitTime++;
+	score.point += ball.hitTime;
+	var point = ball.hitTime;
+	var fontSize = "9px";
+	if(point < 10){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime, "9px", "#7097b8"));
+	}else if(point >= 10 && point < 20){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime, "10px", "#6fd1a4"));
+	}else if(point >= 20 && point < 50){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime, "12px", "#e1a827"));
+	}else if(point >= 50 && point < 100){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime, "16px", "#e12727"));
+	}else if(point >= 100 && point < 300){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime, "18px", "#e12797"));
+	}else if(point >= 300 && point < 500){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime + "!", "20px", "#ffd00a"));
+	}else if(point >= 500){
+		tips.push(new Tip(ball.x, ball.y, "+" + ball.hitTime + "!!!", "22px", "#df0000"));
+	}
+	
+	if(point > score.hitTime){
+		score.hitTime = point;
+	}
+}
+
+function insideBrickOrNot(x, y){
+	for(brick of bricks){
+		if(y > brick.y && y < brick.y + brick.h && x > brick.x && x < brick.x + brick.w){
+			return true;
+		}
+	}	
+	return false;
+}
+
+function checkTouch(ball, brick){
+	if(ball.y >= brick.y && ball.y <= brick.y + brick.h && ball.x >= brick.x && ball.x <= brick.x + brick.w){
+		return true;
+	}else{
+		var xGap = Math.min(Math.abs(ball.x - brick.x), Math.abs(ball.x - (brick.x + brick.w)));
+		var yGap = Math.min(Math.abs(ball.y - brick.y), Math.abs(ball.y - (brick.y + brick.h)));
+		//原點在磚塊外，但在半徑內
+		if(ball.r >= Math.sqrt(Math.pow(xGap, 2) + Math.pow(yGap, 2))){
+			return true;
+		}
+	}
+	return false;
+}
+
+
+function reboundByXOrYMin(ball, x1, y1, x2, y2){
+	if(Math.abs(x1 - x2) < Math.abs(y1 - y2)){
+		ball.dx = -ball.dx;
+	}else{
+		ball.dy = -ball.dy;
+	}
+}
+
+
+function rebound(ball, brick){
+	var insidrFlag = false;
+	if(ball.y >= brick.y && ball.y <= brick.y + brick.h && ball.x >= brick.x && ball.x <= brick.x + brick.w){
+		insidrFlag = true;
+	}else{
+		var xGap = Math.min(Math.abs(ball.x - brick.x), Math.abs(ball.x - (brick.x + brick.w)));
+		var yGap = Math.min(Math.abs(ball.y - brick.y), Math.abs(ball.y - (brick.y + brick.h)));
+		//原點在磚塊外，但在半徑內
+		if(ball.r >= Math.sqrt(Math.pow(xGap, 2) + Math.pow(yGap, 2))){
+			insidrFlag = true;
+		}
+	}
+	if(insidrFlag == false){
+		return;
+	}
+	
+	
+
+	
+	var leftX = brick.x;
+	var rightX = brick.x + brick.w;
+	var topY = brick.y;
+	var botY = brick.y + brick.h;
+	var x = ball.lastX;
+	var y = ball.lastY;
+	
+	/**
+	*  1  _2_  3
+	*  4 |_5_| 6
+	*  7   8   9
+	*/
+	var insideFlag = false;
+	if(x < leftX && y < topY){//1
+		reboundByXOrYMin(ball, x, y, leftX, topY);
+	}else if(x >= leftX && x <= rightX && y < topY){//2
+		ball.dy = -ball.dy;
+	}else if(x > rightX && y < topY){//3
+		reboundByXOrYMin(ball, x, y, rightX, topY);
+	}else if(x < leftX && y >= topY && y <= botY){//4
+		ball.dx = -ball.dx;
+	}else if(x >= leftX && x <= rightX && y >= topY && y <= botY){//5
+		//reboundByXOrYMin(ball, x, y, leftX, topY);//反彈後依然在內
+		insideFlag = true;
+	}else if(x > rightX && y >= topY && y <= botY){//6
+		ball.dx = -ball.dx;
+	}else if(x < leftX && y > botY){//7
+		reboundByXOrYMin(ball, x, y, leftX, botY);
+	}else if(x >= leftX && y > botY){//8
+		ball.dy = -ball.dy;
+	}else if(x > rightX && y > botY){//9
+		reboundByXOrYMin(ball, x, y, rightX, botY);
+	}
+	
+	if(insideFlag != true){
+		scoreUp(ball, brick);//得分		
+	}
+
+	
+}
+
+
+
+function hit(){
+	var xGap;
+	var yGap;
+	var tGap;
+	var bGap;
+	var lGap;
+	var gGap;
+	for(ball of balls){
+		for(brick of bricks){
+			xGap = Math.min(Math.abs(ball.x - brick.x), Math.abs(ball.x - (brick.x + brick.w)));
+			yGap = Math.min(Math.abs(ball.y - brick.y), Math.abs(ball.y - (brick.y + brick.h)));
+			lGap = Math.abs(ball.x - brick.x);
+			gGap = Math.abs(ball.x - (brick.x + brick.w));
+			tGap = Math.abs(ball.y - brick.y);
+			bGap = Math.abs(ball.y - (brick.y + brick.h));
+			
+			//原點在磚塊內
+			if(ball.y >= brick.y && ball.y <= brick.y + brick.h && ball.x >= brick.x && ball.x <= brick.x + brick.w){
+				if(lGap < gGap && lGap < tGap && lGap < bGap){
+					ball.x = brick.x - ball.r//往左
+					ball.dx = -ball.dx;
+				}else if(gGap < lGap && gGap < tGap && gGap < bGap){
+					ball.x = brick.x + brick.w + ball.r;//往右
+					ball.dx = -ball.dx;
+				}else if(tGap < lGap && tGap < gGap && tGap < bGap){
+					ball.y = brick.y - ball.r;//往上
+					ball.dy = -ball.dy;
+				}else{
+					ball.y = brick.y + brick.h + ball.r;//往下
+					ball.dy = -ball.dy;
+				}
+				scoreUp(ball, brick);//得分			
+			}else{
+				//原點在磚塊外，但在半徑內
+				if(ball.r >= Math.sqrt(Math.pow(xGap, 2) + Math.pow(yGap, 2))){
+					if(ball.y > brick.y && ball.y < brick.y + brick.h){
+						if(Math.abs(ball.x - brick.x) < Math.abs(ball.x - (brick.x + brick.w))){
+							ball.x = brick.x - ball.r;//方塊左側
+						}else{
+							ball.x = brick.x + brick.w + ball.r;//方塊右側
+						}
+						ball.dx = -ball.dx;
+					}else if(ball.x > brick.x && ball.x < brick.x + brick.w){
+						if(Math.abs(ball.y - brick.y) < Math.abs(ball.y - (brick.y + brick.h))){
+							ball.y = brick.y - ball.r;//方塊上側
+						}else{
+							ball.y = brick.y + brick.h + ball.r;//方塊下側
+						}
+						ball.dy = -ball.dy;
+					}else{
+						if(lGap < gGap && lGap < tGap && lGap < bGap){
+							ball.x = brick.x - ball.r//往左
+							ball.dx = -ball.dx;
+						}else if(gGap < lGap && gGap < tGap && gGap < bGap){
+							ball.x = brick.x + brick.w + ball.r;//往右
+							ball.dx = -ball.dx;
+						}else if(tGap < lGap && tGap < gGap && tGap < bGap){
+							ball.y = brick.y - ball.r;//往上
+							ball.dy = -ball.dy;
+						}else{
+							ball.y = brick.y + brick.h + ball.r;//往下
+							ball.dy = -ball.dy;
+						}	
+					}
+					scoreUp(ball, brick);
+				}
+			}
+		}
+	}
+}
+
+function checkStartShoot(e){
+	var fixTouchX = e.touches[0].pageX * (1 / playBoardScale);
+	var fixTouchY = e.touches[0].pageY * (1 / playBoardScale);
+	var z = Math.sqrt(Math.pow(fixTouchX - controller.x, 2) + Math.pow(fixTouchY - controller.y, 2));
+	if(z < controller.r + 20){
+		controller.startShoot = true;//發射
+	}else{
+		controller.startShoot = false;
+	}
+}
+function createElement(){
+	if(shootBall > 0){
+		if(time % 3 == 0){
+			balls.push(new Ball());
+			shootBall--;
+		}
+	}
+}
+
+function degree(x1, y1, x2, y2){
+	var gapX = x2 - x1;
+	var gapY = y1 - y2;
+	
+	var ro = null;
+	var z = Math.sqrt(Math.pow(gapX, 2) + Math.pow(gapY, 2));
+	if(z > 0){
+		ro = Math.asin(gapY / z) * 180 / Math.PI;
+		//修正
+		if(gapX < 0){
+			ro = 180 - ro;
+		}else if(gapX >= 0 && gapY < 0){
+			ro = 360 + ro;
+		}
+	}
+	return ro;
+}
+function distance(x1, y1, x2, y2){
+	return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2))
+}
+function onTouchArrow(x, y){
+	arrow.ro = degree(oriX, oriY, x, y);
+}
+
+function main(){
+	time++;
+	shootBallPause--;
+	clear();
+	createElement();
+	move();
+	draw();
+	deleteElement();
+	
+	raf = window.requestAnimationFrame(main);
+	
+	
+}
+
+
+function init(){
+	//ui初始化 大小調整
+	var clientWidth = document.documentElement.clientWidth;
+	var clientHeight = document.documentElement.clientHeight;
+	canvas.width = playBoardWidth;
+	canvas.height = playBoardHeight;
+	var scale = 1;
+	if(clientWidth * (16 / 9) < clientHeight){
+		scale = clientWidth / playBoardWidth ;
+	}else{
+		scale = clientHeight / playBoardHeight;
+	}
+	canvas.style.transform = "scale(" + scale + ")";
+	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	playBoardScale = scale;
+	
+	createBrick();
+	arrow = new Arrow();
+	score = new Score();
+	controller = new Controller();
+	draw();
+	
+	raf = window.requestAnimationFrame(main);
+	
+}	
+
+function restart(){
+	raf = null;
+	paush = null;
+	time = 0;
+	playBoardScale = 1;
+	clear();
+	balls = [];
+	bricks = [];
+	tips = [];
+	arrow = null;
+	score = null;
+}
+	var canvas = document.getElementById("mainCanvas");
+	var ctx;
+	if (canvas.getContext){
+		ctx = canvas.getContext("2d");
+	}else{
+		alert("瀏覽器不支援");
+	}
+	var raf;
+	var paush;
+	var playBoardScale = 1;//縮放
+	var playBoardWidth = 480;
+	var playBoardHeight = playBoardWidth * (16 / 9);
+	var time = 0;
+	var oriX = playBoardWidth / 2 ;//原點
+	var oriY = playBoardHeight;//原點
+	var hp = 3;
+	var brickNum = 100;
+	var arrowSpace = 100;//發射點到磚塊的間距
+	var shootBall = 0;//球數射出幾個
+	var shootBallPause = 0;
+	
+	
+	//物件類別
+	var balls = [];
+	var bricks = [];
+	var tips = [];
+	var arrow;
+	var score;
+	init();
+	
+	
+	
+	
+	
+window.addEventListener("keydown", function(e){
+	if(raf == null || paush == true){
+		raf = window.requestAnimationFrame(main);
+		paush = false;
+	}
+	var key = e.code;
+	if(key == "ArrowRight" || key == "Numpad6" || key == "KeyD"){
+		if(arrow.ro > 0){
+			arrow.move = -1;
+		}
+	}
+	if(key == "ArrowLeft" || key == "Numpad4" || key == "KeyA"){
+		if(arrow.ro < 180){
+			arrow.move = 1;
+		}
+	}
+	if(key == "ArrowUp" || key == "Numpad8" || key == "KeyW" || key == "Space"){
+		if(shootBallPause <= 0){
+			shootBallPause = 1000;
+			shootBall = score.hp;
+		}
+	}
+	if(key == "KeyP" || key == "Escape"){
+		paush = true;
+		window.cancelAnimationFrame(raf);
+	}
+	if(key == "KeyR"){
+		restart();
+		init();
+	}
+});
+
+window.addEventListener("mousemove", function(e){
+	e.preventDefault();
+	var fixX = e.offsetX - oriX;
+	var fixY = oriY - e.offsetY;
+	var z = Math.sqrt(Math.pow(fixX, 2) + Math.pow(fixY, 2));
+	var ro = Math.asin(fixY / z) * 180 / Math.PI;
+	arrow.ro = fixX < 0 ?180 - ro :ro;
+});
+window.addEventListener("click", function(e){
+	e.preventDefault();
+	if(shootBallPause <= 0){
+		shootBallPause = 0;
+		shootBall = score.hp;
+	}
+});
+
+
+window.addEventListener("touchstart", function(e){
+	controller.startShoot = true;//發射
+});
+
+
+
+window.addEventListener("touchmove", function(e){
+
+/*
+	e.preventDefault();
+	var x = e.changedTouches[0].pageX;
+	var y = e.changedTouches[0].pageY;
+	controller.touchX = x;
+	controller.touchY = y;
+	controller.setStartXY(x, y);
+	
+	arrow.lastRoMove = arrow.roMove;
+	if(controller.touchX > controller.startX + 2 && controller.touchX <= controller.startX + 120){
+		arrow.roMove = -0.02;
+	}else if(controller.touchX > controller.startX + 120 && controller.touchX <= controller.startX + 180){
+		arrow.roMove = -0.2;
+	}else if(controller.touchX > controller.startX + 180){
+		arrow.roMove = -0.4;
+	}else if(controller.touchX < controller.startX - 2 && controller.touchX >= controller.startX - 120){
+		arrow.roMove = 0.02;
+	}else if(controller.touchX < controller.startX - 120 && controller.touchX >= controller.startX - 180){
+		arrow.roMove = 0.2;
+	}else if(controller.touchX < controller.startX - 180){
+		arrow.roMove = 0.4;
+	}else{
+		arrow.roMove = 0;
+		if(arrow.lastRoMove != 0){
+			controller.onStart();
+		}
+	}
+	if((arrow.lastRoMove > 0 && arrow.roMove < 0)
+		||(arrow.lastRoMove < 0 && arrow.roMove > 0)){
+		controller.onStart();
+	}
+*/
+
+	e.preventDefault();
+	var x = e.changedTouches[0].pageX;
+	var y = e.changedTouches[0].pageY + document.documentElement.scrollTop;
+	onTouchArrow(x * (1 / playBoardScale), y * (1 / playBoardScale));
+	//發射
+	checkStartShoot(e);
+
+},{passive: false});
+window.addEventListener("touchend", function(e){
+	e.preventDefault();
+	arrow.roMove = 0;
+	controller.onStart();
+	
+	if(controller.startShoot == true){
+		if(shootBallPause <= 0){
+			shootBallPause = 0;
+			shootBall = score.hp;
+			controller.startShoot = false;
+		}
+	}
+	
+	
+	/*
+	e.preventDefault();
+	var fixX = e.changedTouches[0].pageX - oriX;
+	var fixY = oriY - e.changedTouches[0].pageY + document.documentElement.scrollTop;
+	var z = Math.sqrt(Math.pow(fixX, 2) + Math.pow(fixY, 2));
+	var ro = Math.asin(fixY / z) * 180 / Math.PI;
+	arrow.ro = fixX < 0? 180-ro:ro;
+	if(controller.startShoot == true){
+		if(shootBallPause <= 0){
+			shootBallPause = 0;
+			shootBall = score.hp;
+		}
+	}
+	*/
+});
+
+window.addEventListener("scroll", function(e){
+	var center = document.getElementById("center");
+	if(document.documentElement.scrollTop > center.offsetTop + 100 || document.documentElement.scrollTop < center.offsetTop - 100){
+		document.documentElement.scrollTop = center.offsetTop;
+	}
+});
+
+</script>
+
+</body>
+</html>
