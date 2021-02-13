@@ -638,6 +638,7 @@ function main(){
 
 
 function init(){
+	raf = window.requestAnimationFrame(main);
 	//ui初始化 大小調整
 	var clientWidth = document.documentElement.clientWidth;
 	var clientHeight = document.documentElement.clientHeight;
@@ -659,7 +660,6 @@ function init(){
 	controller = new Controller();
 	draw();
 	
-	raf = window.requestAnimationFrame(main);
 	
 }	
 
