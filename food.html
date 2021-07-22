@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1">
+<link rel="shortcut icon" href="icon.png">
+<title>Food</title>
+</head>
+<style>
+body{
+	font-family: Courier;
+	background-color: #e0e0e0;
+    margin: 65px 5% 50px 5%;
+}	
+
+@media screen and (max-width: 1000px){
+	body {
+		margin-right: 5px;
+		margin-left: 5px;
+	}
+}
+
+
+body input{
+    height: 25px;
+    font-size: 20px;
+    line-height: 11px;
+    background-color: #ffffff;
+    border: 0.5px #6a6a6a dotted;
+    padding: 5px 5px 4px 5px;
+}
+body input:focus{
+    outline: 0px;
+    box-shadow: #646464 0px 0px 8px 1px;
+}
+body input:disabled{
+	background-color: #d8d8d8;
+}
+body select{
+    height: 35px;
+    text-align: center;
+    border: 0.5px #6a6a6a dotted;
+    padding: 5px 5px 4px 5px;
+    font-size: 20px;
+}
+body select:focus{
+    outline: 0px;
+    box-shadow: #646464 0px 0px 8px 1px;
+}
+body [type="date"]{
+    height: 25px;
+    text-align: center;
+    padding-top: 5px;
+    border: 0.5px #6a6a6a dotted;
+    padding: 5px 5px 4px 5px;
+}
+body [type="date"]:focus{
+    outline: 0px;
+    box-shadow: #646464 0px 0px 8px 1px;
+}
+body [type="checkbox"]{
+    height: 14px;
+    width: 14px;
+    vertical-align: middle;
+    margin: 5px 2px 7px 6px;
+}
+
+body button{
+    border: 0.5px #6a6a6a dotted;
+    font-size: 14px;
+    cursor: pointer;
+    line-height: 18px;
+    height: 27px;
+    padding: 4px 10px 0px 10px;
+    vertical-align: top;
+    background-color: #f5f5f5;
+    transition: 0.1s;
+    margin-bottom: 2px;
+}
+  
+body button:hover{
+    box-shadow: #38373759 0px 0px 7px 0px;
+    transition: 0.1s;
+}
+  
+body [type="file"]{
+    height: 22px;
+    background-color: #fdfdfd;
+    padding: 5px;
+}
+body textarea{
+    height: 25px;
+    font-size: 12px;
+    line-height: 11px;
+    background-color: #ffffff;
+    border-bottom: 1px #6a6a6a dotted;
+    padding: 4px 5px 3px 5px;
+}
+body input:focus{
+    outline: 0px;
+    box-shadow: #646464 0px 0px 8px 1px;
+}
+body input:disabled{
+	background-color: #d8d8d8;
+}
+.blod{
+	font-weight: 900;
+}
+.center{
+	text-align: center;
+}
+.ingrSelect{
+	width: 132px;
+}
+.quaSelect{
+    width: 100px;
+}
+.ingrInput{
+    width: 107px;
+}
+.quaInput{
+    width: 75px;
+}
+.ingr, .qua{
+    position: relative;
+}
+.ingrInput, .quaInput{
+    position: absolute;
+    top: 1px;
+    left: 1px;
+    height: 24px;
+    border: 0px #6a6a6a dotted;
+    padding: 5px 0px 4px 5px;
+}
+.count{
+    width: 100px;
+}
+#outputTextarea{
+    height: 300px;
+    width: 95%;
+    margin: 0 auto;
+    display: block;
+    font-size: 20px;
+    line-height: 26px;
+}
+#lineBtn{
+    display: block;
+    margin: 30px;
+    text-align: center;
+}
+</style>
+
+<body onload='init();'>
+<div>
+	<h1 class="center">食譜筆記</h1>
+	<h2>材料</h2>
+	<table>
+		<tbody id="ingrTbody">
+			<tr>
+				<td>
+					<div class="ingr">
+						<select class="ingrSelect" onclick='setList(this, "ingr");' onChange="fillOther(this);"></select>
+						<input class="ingrInput" onChange="addIngredient(this); fillOther(this);"></input>
+					</div>
+				</td>
+				<td><input class="count"></input></td>
+				<td>
+					<div class="qua">
+						<select class="quaSelect" onclick='setList(this, "qua");' onChange="fillQuaInput(this);"></select>
+						<input class="quaInput" onChange="addQua(this); "></input>
+					</div>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<h2>烹飪步驟</h2>
+	<table>
+		<tbody id="stepTbody">
+			<tr>
+				<td class="stepNo" >1. </td>
+				<td><input class="step" onChange="addStepLine(this);"></input></td>
+			</tr>
+		</tbody>
+	</table>
+	<hr>
+	<textarea id="outputTextarea" onclick='parseData(this);'></textarea>
+	<a href="" onclick="shareToLine();" id="lineBtn">
+		<img src="https://www.line-website.com/social-plugins/img/common/square-default-large.png" width="50" height="50"/>
+	</a>
+
+<script language="JavaScript" type="text/JavaScript">
+const DEFAULT_INGREDIENT = [
+	    {name: "大蒜", quantifier: "瓣"}
+	   ,{name: "薑", quantifier: "片"}
+	];
+	
+const DEFAULT_QUA = [
+		{name: "瓣"}
+	   ,{name: "顆"}
+	   ,{name: "片"}
+	   ,{name: "塊"}
+	];
+	
+var allIngr = []
+var allQua = []
+
+function init(){
+	loadDefaultData();
+	
+}
+
+function loadDefaultData(){
+	if(localStorage.getItem("ingr") != null || localStorage.getItem("qua") != null){
+		try{
+			allIngr = JSON.parse(localStorage.getItem("ingr"));
+			allQua = JSON.parse(localStorage.getItem("qua"));
+		}catch(e){
+			console.log(e);
+		}
+		return;
+	}
+	allIngr = DEFAULT_INGREDIENT;
+	allQua = DEFAULT_QUA;
+}
+
+function setList(e, type){
+	var temp = e.value;
+	var theList = [];
+	
+	if(type == "ingr"){
+		theList = allIngr;
+	}else if(type == "qua"){
+		theList = allQua;
+	}
+
+	e.innerHTML = "";
+	for(let i of theList){
+		var option = document.createElement("option");
+		option.value = i.name;
+		option.text = i.name;
+		e.add(option);
+	}
+	e.value = temp;
+}
+
+
+
+function fillQuaInput(e){
+	var tr = e.parentElement.parentElement.parentElement;
+	var quaInput = tr.getElementsByClassName("quaInput")[0];
+	quaInput.value = e.value;
+}
+
+function fillOther(e){
+	var tr = e.parentElement.parentElement.parentElement;
+	var ingrInput = tr.getElementsByClassName("ingrInput")[0];
+	var quaInput = tr.getElementsByClassName("quaInput")[0];
+	var quaSelect = tr.getElementsByClassName("quaSelect")[0];
+	
+	//fill qua
+	setList(quaSelect, "qua");
+	var ingrData = allIngr.find(i => i.name == e.value);
+	quaSelect.value = ingrData.quantifier;
+	quaInput.value = ingrData.quantifier;
+
+	//fill ingr
+	ingrInput.value = e.value;
+	
+	//add tr
+	var allSelect = document.getElementsByClassName("ingrSelect");
+	var emptySelect = Array.from(allSelect).filter(e => e.value == "");
+	if(emptySelect.length < 1){
+		var newTr = document.createElement("tr");
+		newTr.innerHTML = tr.innerHTML;
+		document.getElementById("ingrTbody").appendChild(newTr);
+	}
+	
+}
+
+function addIngredient(e){
+	var ingrSelect = e.parentElement.getElementsByClassName("ingrSelect")[0];
+	var ingrData = allIngr.find(i => i.name == e.value);
+	if(ingrData == null){
+		allIngr.push({name: e.value, quantifier: ""});
+	}
+	setList(ingrSelect, "ingr");
+	ingrSelect.value = e.value;
+	localStorage.setItem("ingr", JSON.stringify(allIngr));
+}
+
+function addQua(e){
+	var quaSelect = e.parentElement.getElementsByClassName("quaSelect")[0];
+	var quaData = allQua.find(i => i.name == e.value);
+	if(quaData == null){
+		allQua.push({name: e.value});
+	}
+	setList(quaSelect, "qua");
+	quaSelect.value = e.value;
+	localStorage.setItem("qua", JSON.stringify(allQua));
+}
+
+
+function addStepLine(e){
+	//add step line
+	var tr = e.parentElement.parentElement;
+	var allStep = document.getElementsByClassName("step");
+	var emptyStep = Array.from(allStep).filter(e => e.value == "");
+	if(emptyStep.length < 1){
+		var newTr = document.createElement("tr");
+		newTr.innerHTML = tr.innerHTML;
+		document.getElementById("stepTbody").appendChild(newTr);
+		newTr.getElementsByClassName("stepNo")[0].innerText = String(allStep.length) + ". ";
+	}
+	
+}
+
+function parseData(e){
+	var ingr = Array.from(document.getElementsByClassName("ingrInput")).map(e => e.value);
+	var count = Array.from(document.getElementsByClassName("count")).map(e => e.value);
+	var qua = Array.from(document.getElementsByClassName("quaInput")).map(e => e.value);
+	var step = Array.from(document.getElementsByClassName("step")).map(e => e.value);
+	var str = "";
+	var mark1 = "...";
+	var mark2 = "----------------------------";
+	var word1 = "食譜筆記";
+	var word2 = "材料: ";
+	var word3 = "烹飪步驟: ";
+	
+	
+	str += word1 + "\n\n" + word2 + "\n";
+	for(let i=0; i<ingr.length; i++){
+		str += ingr[i] + mark1 + count[i] + qua[i] + "\n";
+	}
+	str += "\n" + mark2 + "\n" + word3 + "\n";
+	for(let i=0; i<step.length; i++){
+		str += step[i] + "\n";
+	}
+	
+	e.value = str;
+}
+
+function shareToLine(){
+	var str = document.getElementById("outputTextarea").value;
+	window.open("http://line.me/R/msg/text/?" + encodeURIComponent(str));
+	
+
+}
+</script>
+</body>
+</html>
