@@ -110,31 +110,29 @@ body input:disabled{
 .center{
 	text-align: center;
 }
-.ingrSelect{
-	width: 132px;
+.ingrFlexBox{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+    align-content: stretch;
+    align-items: flex-start;
 }
-.quaSelect{
-    width: 100px;
+#ingrBox .ingrFlexBox div{
+    padding-right: 15px;
+    padding-top: 5px;
 }
-.ingrInput{
-    width: 107px;
+#ingrBox .ingrFlexBox div:nth-child(1){
+	width: 45%;
 }
-.quaInput{
-    width: 75px;
+#ingrBox .ingrFlexBox div:nth-child(2){
+	width: 20%;
 }
-.ingr, .qua{
-    position: relative;
+#ingrBox .ingrFlexBox div:nth-child(3){
+	width: 25%;
 }
-.ingrInput, .quaInput{
-    position: absolute;
-    top: 1px;
-    left: 1px;
-    height: 24px;
-    border: 0px #6a6a6a dotted;
-    padding: 5px 0px 4px 5px;
-}
-.count{
-    width: 100px;
+.qua, .ingr, .count{
+    width: 100%;
 }
 #outputTextarea{
     height: 300px;
@@ -152,28 +150,21 @@ body input:disabled{
 </style>
 
 <body onload='init();'>
-<div>
 	<h1 class="center">食譜筆記</h1>
 	<h2>材料</h2>
-	<table>
-		<tbody id="ingrTbody">
-			<tr>
-				<td>
-					<div class="ingr">
-						<select class="ingrSelect" onclick='setList(this, "ingr");' onChange="fillOther(this);"></select>
-						<input class="ingrInput" onChange="addIngredient(this); fillOther(this);"></input>
-					</div>
-				</td>
-				<td><input class="count"></input></td>
-				<td>
-					<div class="qua">
-						<select class="quaSelect" onclick='setList(this, "qua");' onChange="fillQuaInput(this);"></select>
-						<input class="quaInput" onChange="addQua(this); "></input>
-					</div>
-				</td>
-			</tr>
-		</tbody>
-	</table>
+	<div id="ingrBox">
+		<div class="ingrFlexBox">
+			<div>
+				<input class="ingr" type="text" list="ingrList" onChange="addIngr(this); fillQua(this);" onblur="addTr(this);"/>
+			</div>
+			<div>
+				<input class="count"></input>
+			</div>
+			<div>
+				<input class="qua" type="text" list="quaList" onChange="addQua(this);" />
+			</div>
+		</div>
+	</div>
 	<h2>烹飪步驟</h2>
 	<table>
 		<tbody id="stepTbody">
@@ -188,7 +179,9 @@ body input:disabled{
 	<a href="" onclick="shareToLine();" id="lineBtn">
 		<img src="https://www.line-website.com/social-plugins/img/common/square-default-large.png" width="50" height="50"/>
 	</a>
-
+	
+	<datalist id="ingrList"></datalist>
+	<datalist id="quaList"></datalist>
 <script language="JavaScript" type="text/JavaScript">
 const DEFAULT_INGREDIENT = [
 	    {name: "大蒜", quantifier: "瓣"}
@@ -207,7 +200,8 @@ var allQua = []
 
 function init(){
 	loadDefaultData();
-	
+	setList("ingr");
+	setList("qua");
 }
 
 function loadDefaultData(){
@@ -224,85 +218,72 @@ function loadDefaultData(){
 	allQua = DEFAULT_QUA;
 }
 
-function setList(e, type){
-	var temp = e.value;
+function setList(type){
+	var ele = null;
 	var theList = [];
 	
 	if(type == "ingr"){
+		ele = document.getElementById("ingrList");
 		theList = allIngr;
 	}else if(type == "qua"){
+		ele = document.getElementById("quaList");
 		theList = allQua;
 	}
 
-	e.innerHTML = "";
+	ele.innerHTML = "";
 	for(let i of theList){
 		var option = document.createElement("option");
 		option.value = i.name;
 		option.text = i.name;
-		e.add(option);
+		ele.appendChild(option);
 	}
-	e.value = temp;
 }
 
-
-
-function fillQuaInput(e){
-	var tr = e.parentElement.parentElement.parentElement;
-	var quaInput = tr.getElementsByClassName("quaInput")[0];
-	quaInput.value = e.value;
+function addList(listId, value){
+	var ele = document.getElementById(listId);
+	var option = document.createElement("option");
+	option.value = value;
+	option.text = value;
+	ele.appendChild(option);
 }
 
-function fillOther(e){
-	var tr = e.parentElement.parentElement.parentElement;
-	var ingrInput = tr.getElementsByClassName("ingrInput")[0];
-	var quaInput = tr.getElementsByClassName("quaInput")[0];
-	var quaSelect = tr.getElementsByClassName("quaSelect")[0];
-	
-	//fill qua
-	setList(quaSelect, "qua");
+function addTr(e){
+	var allIngr = document.getElementsByClassName("ingr");
+	var empty = Array.from(allIngr).filter(e => e.value == "");
+	if(empty.length < 2){
+		var flexBox = e.parentElement.parentElement;
+		var newFlexBox = document.createElement("div");
+		newFlexBox.innerHTML = flexBox.innerHTML;
+		newFlexBox.classList.add("ingrFlexBox")
+		document.getElementById("ingrBox").appendChild(newFlexBox);
+	}
+}
+
+function fillQua(e){
+	var tr = e.parentElement.parentElement;
+	var qua = tr.getElementsByClassName("qua")[0];
 	var ingrData = allIngr.find(i => i.name == e.value);
-	quaSelect.value = ingrData.quantifier;
-	quaInput.value = ingrData.quantifier;
-
-	//fill ingr
-	ingrInput.value = e.value;
-	
-	//add tr
-	var allSelect = document.getElementsByClassName("ingrSelect");
-	var emptySelect = Array.from(allSelect).filter(e => e.value == "");
-	if(emptySelect.length < 1){
-		var newTr = document.createElement("tr");
-		newTr.innerHTML = tr.innerHTML;
-		document.getElementById("ingrTbody").appendChild(newTr);
-	}
-	
+	qua.value = ingrData.quantifier;
 }
 
-function addIngredient(e){
-	var ingrSelect = e.parentElement.getElementsByClassName("ingrSelect")[0];
+function addIngr(e){
 	var ingrData = allIngr.find(i => i.name == e.value);
 	if(ingrData == null){
+		addList("ingrList", e.value)
 		allIngr.push({name: e.value, quantifier: ""});
+		localStorage.setItem("ingr", JSON.stringify(allIngr));
 	}
-	setList(ingrSelect, "ingr");
-	ingrSelect.value = e.value;
-	localStorage.setItem("ingr", JSON.stringify(allIngr));
 }
-
 function addQua(e){
-	var quaSelect = e.parentElement.getElementsByClassName("quaSelect")[0];
 	var quaData = allQua.find(i => i.name == e.value);
 	if(quaData == null){
-		allQua.push({name: e.value});
+		addList("quaList", e.value)
+		allQua.push({name: e.value, quantifier: ""});
+		localStorage.setItem("qua", JSON.stringify(allQua));
 	}
-	setList(quaSelect, "qua");
-	quaSelect.value = e.value;
-	localStorage.setItem("qua", JSON.stringify(allQua));
 }
 
-
 function addStepLine(e){
-	//add step line
 	var tr = e.parentElement.parentElement;
 	var allStep = document.getElementsByClassName("step");
 	var emptyStep = Array.from(allStep).filter(e => e.value == "");
@@ -312,14 +293,13 @@ function addStepLine(e){
 		document.getElementById("stepTbody").appendChild(newTr);
 		newTr.getElementsByClassName("stepNo")[0].innerText = String(allStep.length) + ". ";
 	}
-	
 }
 
 function parseData(e){
-	var ingr = Array.from(document.getElementsByClassName("ingrInput")).map(e => e.value);
+	var ingr = Array.from(document.getElementsByClassName("ingr")).filter(e => e.value != "").map(e => e.value);
 	var count = Array.from(document.getElementsByClassName("count")).map(e => e.value);
-	var qua = Array.from(document.getElementsByClassName("quaInput")).map(e => e.value);
-	var step = Array.from(document.getElementsByClassName("step")).map(e => e.value);
+	var qua = Array.from(document.getElementsByClassName("qua")).map(e => e.value);
+	var step = Array.from(document.getElementsByClassName("step")).filter(e => e.value != "").map(e => e.value);
 	var str = "";
 	var mark1 = "...";
 	var mark2 = "----------------------------";
@@ -334,7 +314,7 @@ function parseData(e){
 	}
 	str += "\n" + mark2 + "\n" + word3 + "\n";
 	for(let i=0; i<step.length; i++){
-		str += step[i] + "\n";
+		str += String(i+1) + ". " + step[i] + "\n";
 	}
 	
 	e.value = str;
