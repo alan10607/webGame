@@ -1,5 +1,5 @@
 # webGame
-Web game created by javascript canvas api
+Web games created by javascript canvas api
 <br>
 
 ### 棋牌類 Chess / Card
