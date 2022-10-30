@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="shortcut icon" href="icon.png">
+<title>Klondike</title>
+<script type="text/JavaScript" src="dragon.js" defer></script>
+</head>
+<style>
+body{
+	font-family: Courier;
+	background-color: #e0e0e0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+}	
+  
+canvas{
+	/* border: 0.5px #5f5f5f solid;*/
+    display: block;
+	cursor: crosshair;
+    transform-origin: top left;
+	transform: scale(1);    
+	position: fixed;
+    top: 0;
+    left: 0;
+	z-index: 9999;
+	
+	user-select: none;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+}
+#center{
+	margin: 5000px 0;
+	width: 100%;
+	height: 3000px;
+}
+</style>
+
+<body oncontextmenu="return false;">
+<div id="center"></div>
+<canvas id="mainCanvas">
+瀏覽器不支援
+</canvas>
+</body>
+</html>
