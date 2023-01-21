@@ -42,8 +42,7 @@ Mobile phone web games created by javascript canvas api
         - 藍: 瞄準連射　守衛效果: 連射數提升
         - 黃: 生命、回復速度提高　守衛效果: 更高的生命、回復速度
 <figure class="half">
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo4.jpg" width="300"/>
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo5.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo4.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo5.jpg" width="300"/>
 </figure>
 
 ### <p><a target="_blank" href="https://alan10607.github.io/webGame/life.html">生命遊戲 Life Game(Conway's Game of Life)</a></p>
@@ -74,13 +73,10 @@ Mobile phone web games created by javascript canvas api
 #### 
 - 遊戲開始 / 道中畫面
 <figure class="half">
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo9.jpg" width="300"/>
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo10.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo9.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo10.jpg" width="300"/>
 </figure>
 
 - BOSS華麗的彈幕攻擊
 <figure class="third">
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo11.jpg" width="300"/>
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo12.jpg" width="300"/>
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo13.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo11.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo12.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo13.jpg" width="300"/>
 </figure>
