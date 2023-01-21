@@ -39,7 +39,7 @@ Mobile phone web games created by javascript canvas api
         - 藍: 瞄準連射　守衛效果: 連射數提升
         - 黃: 生命、回復速度提高　守衛效果: 更高的生命、回復速度
 
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo4.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo5.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo4.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo5.jpg" width="300"/>
 
 ### <p><a target="_blank" href="https://alan10607.github.io/webGame/life.html">生命遊戲 Life Game(Conway's Game of Life)</a></p>
 - [康威生命遊戲](https://zh.wikipedia.org/zh-tw/%E5%BA%B7%E5%A8%81%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F) 是一個零玩家遊戲
@@ -66,8 +66,8 @@ Mobile phone web games created by javascript canvas api
 #### 
 - 遊戲開始 / 道中畫面
 
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo9.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo10.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo9.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo10.jpg" width="300"/>
 
 - BOSS華麗的彈幕攻擊
 
-<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo11.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo12.jpg" width="300"/><img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo13.jpg" width="300"/>
+<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo11.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo12.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo13.jpg" width="300"/>
