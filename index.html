@@ -19,26 +19,19 @@
 	</script>
 	<style>
 		a {
-			text-decoration: none;
-			color: inherit;
+			color: #0969da;
+    		text-decoration: none;
 		}
 
-		a:visited, a:hover, a:active {
-			text-decoration: none;
-			color: inherit;
-		}
 		#title{
 			font-size: 40px;
 			font-weight: 100;
 			color: #555555;
 			display: block;
 		}
+
 		#main{
-			position: fixed;
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
+    		padding: 0 15px 0 15px;
 		}
 
 		#main table{
@@ -55,7 +48,7 @@
 			padding: 5px;
 		}
 
-		#main a{
+		#main table a{
 			box-shadow: 3px 3px 6px 0px #4a4a4a;
 			width: 100%;
 			height: 24px;
@@ -63,6 +56,11 @@
 			display: block;
 			margin: 0 auto;
 			padding: 10px 0;
+		}
+
+		#main table a:visited, #main table a:hover, #main table a:active {
+			text-decoration: none;
+			color: inherit;
 		}
 
 		#main .double{
@@ -80,6 +78,14 @@
 			display: block;
 			font-size: 12px;
 			color: #666666;
+		}
+
+		ul{
+		    padding-left: 20px;
+		}
+
+		li{
+		    padding-bottom: 5px;
 		}
 	</style>
 </head>
@@ -116,7 +122,75 @@
 				<td colspan="4"><span id="footer">latest updated: Feb. 2021 by Ping</span></td>
 			</tr>
 		</table>
-	</div>
+
+		<!-- introduction-->
+		<h1>遊戲介紹 Introduction (Demo in mobile phone)</h1>
+		<h2>棋牌類 Chess / Card</h2>
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/chineseChess.html">象棋 Chinese chess</a></h3>
+		<ul><li>直接在手機裡打象棋吧! 適合在車上無聊與親友殺時間, 放鬆玩, 當然想要重下也可以</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo1.jpg" width="300"/>
+
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/darkChess.html">暗棋 Chinese Dark Chess</a></h3>
+		<ul><li>就是小盤象棋, 有"明單"或"暗連"兩種模式可以選擇, 也可以重下</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo2.jpg" width="300"/>
+
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/jumpChess.html">跳棋 Checkers</a></h3>
+		<ul><li>三人玩的跳棋, 也可以選擇兩人模式, 也可以重下</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo3.jpg" width="300"/>
+
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/dragon.html">連環新接龍 FreeCell (developing)</a></h3>
+		<ul><li>施工開發中, 敬請期待</li></ul>
+		<br>
+
+		<h2>益智遊戲 Puzzle Game
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/wall.html">城牆保衛者 Wall Defender</a></h3>
+		<ul>
+			<li><b><i>這是一個單機版本的策略地圖戰略遊戲</i></b></li>
+			<li>主堡: 遊戲開始時在地圖隨機一處生成主堡, 主堡遭破壞即結束遊戲</li>
+			<li>守衛: 緊接著主堡或守衛的方塊可升級為守衛, 主堡與守衛比起一般方塊有額外效果</li>
+			<li>方塊分為以下: 遊戲開始時在地圖隨機一處生成主堡, 主堡遭破壞即結束遊戲與守衛比起一般方塊有額外效果
+				<ul>
+					<li>土地:
+						<ul>
+							<li>淺粉紅: 表尚無建造設施之新生土地, 無功能, 可升級成任意設施, 設施生命達30時自動在周圍生成</li>
+						</ul>
+					</li>
+					<li>設施:
+						<ul>
+							<li>紅: 周圍散射　守衛效果: 射擊頻率提升</li>
+							<li>藍: 瞄準連射　守衛效果: 連射數提升</li>
+							<li>黃: 生命、回復速度提高　守衛效果: 更高的生命、回復速度</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo4.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo5.jpg" width="300"/>
+
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/life.html">生命遊戲 Life Game(Conway's Game of Life)</a></h3>
+		<ul>
+			<li><a target="_blank" href="https://zh.wikipedia.org/zh-tw/%E5%BA%B7%E5%A8%81%E7%94%9F%E5%91%BD%E6%B8%B8%E6%88%8F">康威生命遊戲</a> 是一個零玩家遊戲</li>
+			<li>在一個二維方格世界, 每個方格代表一個活著或死亡的細胞, 一個細胞在下一刻的生死取決於周圍相鄰八個方格中的細胞狀態</li>
+			<li>若周圍活著的細胞過多, 則這個細胞會因資源匱乏而死去, 但若周圍活著的細胞過少, 該細胞也會因太孤單而死去</li>
+		</ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo6.jpg" width="300"/>
+
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/2048.html">2048</a></h3>
+		<ul><li>恩...就是那個2048, 另外新增了一個隨機快進模式</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo7.jpg" width="300"/>
+		<br>
+
+		<h2>射擊遊戲 Shooting Game</h2>
+		<h3><a target="_blank" href="https://alan10607.github.io/webGame/ball.html">彈跳球 Bouncing Ball</a></h3>
+		<ul><li>殺時間小遊戲! 彈跳次數越多分數增加越高, 魔性的彈跳球</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo8.jpg" width="300"/>
+
+		<h2><a target="_blank" href="https://alan10607.github.io/webGame/flyball.html">FLYBALL MASTER</a></h2>
+		<ul><li>飛球大師, 這是一款<b><i>2D卷軸射擊遊戲</i></b>, 遊戲中攻擊敵方飛球, 收集掉落物與防禦星星, 並在每關擊倒BOSS, 你能完整通過三關嗎?</li></ul>
+		<ul><li>遊戲開始 / 道中畫面</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo9.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo10.jpg" width="300"/>
+		<ul><li>BOSS華麗的彈幕攻擊</li></ul>
+		<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo11.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo12.jpg" width="300"/>　<img src="https://raw.githubusercontent.com/alan10607/webGame/master/docs/demo13.jpg" width="300"/>	</div>
 
 </body>
 
