@@ -2699,6 +2699,7 @@ function init(){
 	}
 	canvas.style.transform = "scale(" + scale + ")";
 	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	fixLeft = (clientWidth - (playBoardWidth * scale)) / 2;
 	playBoardScale = scale;
 	
 
@@ -2729,6 +2730,7 @@ function restart(){
 	var pauseFlag = false;//暫停
 	var difficulty = 0;//難易度
 	var maxStageNum = 3; //最大關卡數
+	var fixLeft = 0;
 	
 	//物件類別
 	var player
@@ -2757,7 +2759,7 @@ window.addEventListener("mousemove", function(e){
 });
 window.addEventListener("click", function(e){
 	e.preventDefault();	
-	var x = e.offsetX;
+	var x = e.offsetX - fixLeft;
 	var y = e.offsetY - document.documentElement.scrollTop;
 });
 
@@ -2774,7 +2776,7 @@ window.addEventListener("touchstart", function(e){
 	}*/
 	
 	
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
 	onTouchPlayer(x * (1 / scale), y * (1 / scale));
 
@@ -2791,14 +2793,14 @@ window.addEventListener("touchmove", function(e){
 		onTouchPlayer(x * (1 / scale), y * (1 / scale));
 	}*/
 	
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
 	onTouchPlayer(x * (1 / scale), y * (1 / scale));
 },{passive: false});
 
 window.addEventListener("touchend", function(e){
 	e.preventDefault();//防止click與touchend衝突
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
 	//玩家停止
 	player.status = "stop";

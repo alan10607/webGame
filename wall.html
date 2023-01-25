@@ -1382,6 +1382,7 @@ function init(){
 	}
 	canvas.style.transform = "scale(" + scale + ")";
 	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	fixLeft = (clientWidth - (playBoardWidth * scale)) / 2;
 	playBoardScale = scale;
 	
 
@@ -1409,6 +1410,7 @@ function restart(){
 	var time = 0;
 	var scale = 0;
 	var pauseFlag = false;//暫停
+	var fixLeft = 0;
 	
 	//物件類別
 	var bricks = [];
@@ -1429,7 +1431,7 @@ window.addEventListener("mousemove", function(e){
 });
 window.addEventListener("click", function(e){
 	e.preventDefault();	
-	var x = e.offsetX;
+	var x = e.offsetX - fixLeft;
 	var y = e.offsetY - document.documentElement.scrollTop;
 	onTouchEndBrick(x, y);
 	onTouchController(x, y);
@@ -1444,7 +1446,7 @@ window.addEventListener("touchmove", function(e){
 
 window.addEventListener("touchend", function(e){
 	e.preventDefault();
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
 	onTouchEndBrick(x * (1 / scale), y * (1 / scale));
 	onTouchController(x * (1 / scale), y * (1 / scale));

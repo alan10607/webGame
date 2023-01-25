@@ -652,6 +652,7 @@ function init(){
 	}
 	canvas.style.transform = "scale(" + scale + ")";
 	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	fixLeft = (clientWidth - (playBoardWidth * scale)) / 2;
 	playBoardScale = scale;
 	
 	createBrick();
@@ -695,6 +696,7 @@ function restart(){
 	var arrowSpace = 100;//發射點到磚塊的間距
 	var shootBall = 0;//球數射出幾個
 	var shootBallPause = 0;
+	var fixLeft = 0;
 	
 	
 	//物件類別
@@ -800,7 +802,7 @@ window.addEventListener("touchmove", function(e){
 */
 
 	e.preventDefault();
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY + document.documentElement.scrollTop;
 	onTouchArrow(x * (1 / playBoardScale), y * (1 / playBoardScale));
 	//發射

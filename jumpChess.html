@@ -828,6 +828,7 @@ function init(){
 	}
 	canvas.style.transform = "scale(" + scale + ")";
 	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	fixLeft = (clientWidth - (playBoardWidth * scale)) / 2;
 	playBoardScale = scale;
 	
 
@@ -871,6 +872,7 @@ function restart(){
 	var logs = [];//遊戲紀錄
 	var score;
 	var controllers = [];
+	var fixLeft = 0;
 	
 	init();
 	
@@ -879,7 +881,7 @@ window.addEventListener("mousemove", function(e){
 });
 window.addEventListener("click", function(e){
 	e.preventDefault();	
-	var x = e.offsetX;
+	var x = e.offsetX - fixLeft;
 	var y = e.offsetY - document.documentElement.scrollTop;
 	onClickChess(x , y );	
 });
@@ -889,13 +891,14 @@ window.addEventListener("touchstart", function(e){
 
 window.addEventListener("touchmove", function(e){
 	e.preventDefault();
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;;
 	onTouchChess(x * (1 / scale), y * (1 / scale));	
 },{passive: false});
+
 window.addEventListener("touchend", function(e){
 	e.preventDefault();//防止click與touchend衝突
-	var x = e.changedTouches[0].pageX;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY - document.documentElement.scrollTop;
 	onClickChess(x * (1 / scale), y * (1 / scale));	
 });

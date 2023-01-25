@@ -787,6 +787,7 @@ function init(){
 	}
 	canvas.style.transform = "scale(" + scale + ")";
 	canvas.style.left = (clientWidth - (playBoardWidth * scale)) / 2 + "px";
+	fixLeft = (clientWidth - (playBoardWidth * scale)) / 2;
 	playBoardScale = scale;
 	
 
@@ -827,6 +828,7 @@ function restart(){
 	var controller;
 	var bKing = null;//雙方的王
 	var rKing = null;
+	var fixLeft = 0;
 	init();
 	
 	
@@ -836,7 +838,7 @@ window.addEventListener("mousemove", function(e){
 });
 window.addEventListener("click", function(e){
 	e.preventDefault();//防止click與touchend衝突
-	var x = e.offsetX;
+	var x = e.offsetX - fixLeft;
 	var y = e.offsetY;
 	onClickChess(x, y);	
 });
@@ -848,7 +850,7 @@ window.addEventListener("touchmove", function(e){
 });
 window.addEventListener("touchend", function(e){
 	e.preventDefault();//防止click與touchend衝突
-	var x = e.changedTouches[0].pageX ;
+	var x = e.changedTouches[0].pageX - fixLeft;
 	var y = e.changedTouches[0].pageY;
 	onClickChess(x * (1 / scale), y * (1 / scale));	
 });
