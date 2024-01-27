@@ -1,7 +1,7 @@
 # webGame
 Mobile phone web games created by javascript canvas api
 
-### 遊戲僅支援手機瀏覽器開啟 => [Games Index | 遊戲目錄](https://alan10607.github.io/webGame/)
+### Most of them only support phone mobile browsers => [Games Menu](https://alan10607.github.io/webGame/)
 <hr>
 
 # Game Introduction Introduction (Demo in mobile phone)
